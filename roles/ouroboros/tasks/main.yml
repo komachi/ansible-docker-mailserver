@@ -1,0 +1,17 @@
+
+- name: Run ouroboros container
+  docker_container:
+    name: "ouroboros"
+    image: "pyouroboros/ouroboros"
+    state: started
+    restart: yes
+    restart_policy: "unless-stopped"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/etc/localtime:/etc/localtime:ro"
+    env:
+      SELF_UPDATE: "true"
+      CLEANUP: "true"
+      CRON: "0 5 * * *"
+  vars:
+    ansible_python_interpreter: '/usr/bin/env docker-python'

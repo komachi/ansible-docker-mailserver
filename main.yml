@@ -1,0 +1,78 @@
+---
+- hosts: all
+  become: True
+  gather_facts: True
+  roles:
+    - debops.core
+    - debops.locales
+    - debops.apt_preferences
+    - debops.apt_install
+    - debops.keyring
+    - debops.python
+    - debops.unattended_upgrades
+    - debops.ntp
+    - debops.ferm
+    - debops.fail2ban
+    - debops.docker_server
+    - geerlingguy.certbot
+    - ouroboros
+    - docker_mailserver
+    - dev-sec.ssh-hardening
+    - dev-sec.os-hardening
+  vars:
+    docker_mailserver_container_name: "mailserver"
+    # geerlingguy.certbot
+    certbot_create_if_missing: true
+    certbot_create_method: standalone
+    certbot_create_standalone_stop_services: []
+    # debops
+    apt_install__packages:
+      - nano
+      - cron
+    apt_install__default_alternatives:
+      - name: 'editor'
+        path: '/usr/bin/nano'
+    keyring__dependent_apt_keys:
+      - "{{ docker_server__keyring__dependent_apt_keys }}"
+    apt__install_recommends: False
+    apt__install_suggests: False
+    apt__nonfree: False
+    ntp__timezone: 'Etc/UTC'
+    locales__system_lang: 'en_US.UTF-8'
+    docker_server__upstream: True
+    docker_server__default_pip_packages:
+      - name: 'docker'
+        state: present
+    ferm__rules:
+      - name: 'ssh'
+        rules:
+          - dport: '22'
+            accept_any: True
+      - name: 'mailserver'
+        rules:
+          - dport: '25'
+            accept_any: True
+          - dport: '110'
+            accept_any: True
+          - dport: '143'
+            accept_any: True
+          - dport: '465'
+            accept_any: True
+          - dport: '587'
+            accept_any: True
+          - dport: '993'
+            accept_any: True
+          - dport: '995'
+            accept_any: True
+      - name: 'certbot'
+        rules:
+          - dport: '80'
+            accept_any: True
+    ferm__mark_portscan: True
+    # dev-sec
+    sysctl_overwrite:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.forwarding: 1
+      net.ipv4.conf.all.forwarding: 1
+    ufw_manage_defaults: False
+    sftp_enabled: true

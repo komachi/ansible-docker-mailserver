@@ -1,0 +1,56 @@
+- name: Ensures /etc/docker-mailserver exists
+  file:
+    path: "/etc/docker-mailserver"
+    state: directory
+
+- name: Copy docker-mailserver configs
+  template:
+    src: '{{ item }}.j2'
+    dest: '/etc/docker-mailserver/{{ item }}'
+  loop:
+    - 'postfix-accounts.cf'
+    - 'postfix-virtual.cf'
+
+- name: Run docker-mailserver container
+  docker_container:
+    name: "{{ docker_mailserver_container_name }}"
+    image: "tvial/docker-mailserver"
+    state: started
+    restart: yes
+    restart_policy: "unless-stopped"
+    domainname: "{{ docker_mailserver_domainname }}"
+    hostname: "{{ docker_mailserver_hostname }}"
+    published_ports:
+      - "25:25"
+      - "110:110"
+      - "143:143"
+      - "587:587"
+      - "993:993"
+      - "995:995"
+    volumes:
+      - maildata:/var/mail
+      - mailstate:/var/mail-state
+      - maillogs:/var/log/mail
+      - "/etc/docker-mailserver:/tmp/docker-mailserver"
+      - "/etc/letsencrypt:/etc/letsencrypt:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    capabilities:
+      - net_admin
+      - sys_ptrace
+    env:
+      ENABLE_POP3: "1"
+      ENABLE_CLAMAV: "0"
+      ENABLE_FAIL2BAN: "1"
+      ENABLE_POSTGREY: "1"
+      ENABLE_SPAMASSASSIN: "1"
+      SSL_TYPE: "letsencrypt"
+      TLS_LEVEL: "modern"
+      SPOOF_PROTECTION: "1"
+      ONE_DIR: "1"
+      DMS_DEBUG: "0"
+      POSTFIX_MESSAGE_SIZE_LIMIT: "10240000"
+  vars:
+    ansible_python_interpreter: '/usr/bin/env docker-python'
+
+- name: Generate DKIM keys
+  shell: "docker run --rm -v /etc/docker-mailserver:/tmp/docker-mailserver -ti tvial/docker-mailserver generate-dkim-config"
