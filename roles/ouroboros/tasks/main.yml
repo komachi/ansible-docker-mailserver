@@ -13,5 +13,3 @@
       SELF_UPDATE: "true"
       CLEANUP: "true"
       CRON: "0 5 * * *"
-  vars:
-    ansible_python_interpreter: '/usr/bin/env docker-python'

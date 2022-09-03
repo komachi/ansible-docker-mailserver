@@ -2,23 +2,31 @@
 - hosts: all
   become: True
   gather_facts: True
+  collections:
+    - devsec.hardening
+    - debops.debops
+    - debops.roles01
+    - debops.roles02
+    - debops.roles03
+    - community.general
+    - ansible.posix
   roles:
-    - debops.core
-    - debops.locales
-    - debops.apt_preferences
-    - debops.apt_install
-    - debops.keyring
-    - debops.python
-    - debops.unattended_upgrades
-    - debops.ntp
-    - debops.ferm
-    - debops.fail2ban
-    - debops.docker_server
+    - core
+    - locales
+    - apt_preferences
+    - apt_install
+    - keyring
+    - python
+    - unattended_upgrades
+    - ntp
+    - ferm
+    - fail2ban
+    - docker_server
     - geerlingguy.certbot
     - ouroboros
     - docker_mailserver
-    - dev-sec.ssh-hardening
-    - dev-sec.os-hardening
+    - ssh_hardening
+    - os_hardening
   vars:
     docker_mailserver_container_name: "mailserver"
     # geerlingguy.certbot
@@ -26,12 +34,20 @@
     certbot_create_method: standalone
     certbot_create_standalone_stop_services: []
     # debops
+    python__v3: true
+    python__v2: false
+    python__packages3:
+      - python3-dev
+      - python-is-python3
+      - python3-pip
+      - python3-setuptools
+      - python3-docker
     apt_install__packages:
-      - nano
+      - micro
       - cron
     apt_install__default_alternatives:
       - name: 'editor'
-        path: '/usr/bin/nano'
+        path: '/usr/bin/micro'
     keyring__dependent_apt_keys:
       - "{{ docker_server__keyring__dependent_apt_keys }}"
     apt__install_recommends: False
@@ -40,9 +56,7 @@
     ntp__timezone: 'Etc/UTC'
     locales__system_lang: 'en_US.UTF-8'
     docker_server__upstream: True
-    docker_server__default_pip_packages:
-      - name: 'docker'
-        state: present
+    docker_server__install_virtualenv: False
     ferm__rules:
       - name: 'ssh'
         rules:
