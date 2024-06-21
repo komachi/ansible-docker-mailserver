@@ -1,14 +1,11 @@
 collections:
   - name: debops.debops
-    source: https://galaxy.ansible.com
-    version: "3.0.3"
+    version: "3.1.0"
   - name: devsec.hardening
-    source: https://galaxy.ansible.com
-    version: "8.1.0"
+    version: "9.0.1"
   - name: community.general
-    source: https://galaxy.ansible.com
   - name: ansible.posix
-    source: https://galaxy.ansible.com
 roles:
   - name: geerlingguy.certbot
-    version: "5.0.1"
+    version: "5.1.1"
+  - name: geerlingguy.docker

@@ -1,7 +1,7 @@
 ---
 - hosts: all
-  become: True
-  gather_facts: True
+  become: true
+  gather_facts: true
   collections:
     - devsec.hardening
     - debops.debops
@@ -21,7 +21,7 @@
     - ntp
     - ferm
     - fail2ban
-    - docker_server
+    - geerlingguy.docker
     - geerlingguy.certbot
     - ouroboros
     - docker_mailserver
@@ -29,6 +29,12 @@
     - os_hardening
   vars:
     docker_mailserver_container_name: "mailserver"
+    # geerlingguy.docker
+    docker_add_repo: true
+    docker_install_compose: true
+    docker_daemon_options:
+      features:
+        buildkit: true
     # geerlingguy.certbot
     certbot_create_if_missing: true
     certbot_create_method: standalone
@@ -48,45 +54,41 @@
     apt_install__default_alternatives:
       - name: 'editor'
         path: '/usr/bin/micro'
-    keyring__dependent_apt_keys:
-      - "{{ docker_server__keyring__dependent_apt_keys }}"
-    apt__install_recommends: False
-    apt__install_suggests: False
-    apt__nonfree: False
+    apt__install_recommends: false
+    apt__install_suggests: false
+    apt__nonfree: false
     ntp__timezone: 'Etc/UTC'
     locales__system_lang: 'en_US.UTF-8'
-    docker_server__upstream: True
-    docker_server__install_virtualenv: False
     ferm__rules:
       - name: 'ssh'
         rules:
           - dport: '22'
-            accept_any: True
+            accept_any: true
       - name: 'mailserver'
         rules:
           - dport: '25'
-            accept_any: True
+            accept_any: true
           - dport: '110'
-            accept_any: True
+            accept_any: true
           - dport: '143'
-            accept_any: True
+            accept_any: true
           - dport: '465'
-            accept_any: True
+            accept_any: true
           - dport: '587'
-            accept_any: True
+            accept_any: true
           - dport: '993'
-            accept_any: True
+            accept_any: true
           - dport: '995'
-            accept_any: True
+            accept_any: true
       - name: 'certbot'
         rules:
           - dport: '80'
-            accept_any: True
-    ferm__mark_portscan: True
+            accept_any: true
+    ferm__mark_portscan: true
     # dev-sec
     sysctl_overwrite:
       net.ipv6.conf.all.disable_ipv6: 0
       net.ipv6.conf.all.forwarding: 1
       net.ipv4.conf.all.forwarding: 1
-    ufw_manage_defaults: False
+    ufw_manage_defaults: false
     sftp_enabled: true

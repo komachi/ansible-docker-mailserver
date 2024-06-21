@@ -11,27 +11,10 @@
     - 'postfix-accounts.cf'
     - 'postfix-virtual.cf'
 
-- name: Run ipv6nat container
-  docker_container:
-    name: "ipv6nat"
-    image: "robbertkl/ipv6nat"
-    state: started
-    restart: yes
-    restart_policy: "always"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /lib/modules:/lib/modules:ro
-    network_mode: 'host'
-    capabilities:
-      - net_admin
-      - sys_module
-  vars:
-    ansible_python_interpreter: '/usr/bin/env docker-python'
-
 - name: Run docker-mailserver container
   docker_container:
     name: "{{ docker_mailserver_container_name }}"
-    image: "tvial/docker-mailserver"
+    image: "ghcr.io/docker-mailserver/docker-mailserver"
     state: started
     restart: yes
     restart_policy: "unless-stopped"
@@ -58,7 +41,7 @@
       ENABLE_POP3: "1"
       ENABLE_CLAMAV: "0"
       ENABLE_FAIL2BAN: "1"
-      ENABLE_POSTGREY: "1"
+      ENABLE_POSTGREY: "0"
       ENABLE_SPAMASSASSIN: "1"
       SSL_TYPE: "letsencrypt"
       TLS_LEVEL: "modern"
@@ -66,18 +49,3 @@
       ONE_DIR: "1"
       DMS_DEBUG: "0"
       POSTFIX_MESSAGE_SIZE_LIMIT: "10240000"
-
-- name: Create network
-  docker_network:
-    name: mail_network
-    driver: bridge
-    enable_ipv6: yes
-    ipam_driver: default
-    ipam_config:
-      - subnet: fd00:0123:4567::/48
-        gateway: fd00:0123:4567::1
-    connected:
-      - "{{ docker_mailserver_container_name }}"
-
-- name: Generate DKIM keys
-  shell: "docker run --rm -v /etc/docker-mailserver:/tmp/docker-mailserver -ti tvial/docker-mailserver generate-dkim-config"
